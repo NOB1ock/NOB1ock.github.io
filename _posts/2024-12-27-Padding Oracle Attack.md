@@ -1,6 +1,22 @@
 # Padding Oracle Attack
+
+---
+title: 标题
+
+date: 2024-12-04 15:49:00 +0800
+
+categories: [一级目录名, 二级目录名] 
+
+tags: 密码学漏洞
+
+---
+
+
+
 Padding Oracle Attack是一种基于填充验证的攻击，针对使用对称加密模式（如 AES-CBC）和特定填充方式（如 PKCS#5/PKCS#7）的系统。如果系统对解密后的填充验证有反馈（比如提示填充错误或成功），攻击者可以利用这一反馈逐字节地恢复密文的明文内容。
+
 ## 1. CBC加密模式
+
 在本文中，我们以CBC（Cipher-block chaining）加密模式为例。在CBC加密模式中，先将明文分成等长的若干块，然后每个明文块先与前一个密文块（经过加密的明文块）进行异或后，再加密。这种方法中，每个密文块都依赖于前面所有的明文块，而第一明文块依赖一个初始向量，该向量长度和块长度一样。由于初始向量每次是随机产生的，所以每次加密的值都会不一样。
 
 
@@ -12,9 +28,10 @@ C_0=IV
 $$
 
 ![Pasted image 20241127153929.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127153929.png)
-*（加密过程）*
-解密则是反过来，先取出初始向量（初始向量通常放在密文头部一同发送，在密码学层面初始向量无需保密），同样将密文分成与加密时一样长度的块。将密文块进行解密，再与下一个密文块进行异或，得到明文块，最后拼接成明文。而第一个密文块解密后与初始向量异或。
 
+*（加密过程）*
+
+解密则是反过来，先取出初始向量（初始向量通常放在密文头部一同发送，在密码学层面初始向量无需保密），同样将密文分成与加密时一样长度的块。将密文块进行解密，再与下一个密文块进行异或，得到明文块，最后拼接成明文。而第一个密文块解密后与初始向量异或。
 
 $$
 \begin{array}{l}
@@ -24,10 +41,13 @@ C_0=IV
 $$
 
 ![Pasted image 20241127154545.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127154545.png)
+
 *（解密过程）*
+
 但是明文长度不一定是块长的整数倍，所以需要将最后一块填充补齐。而CBC规定，缺n位填充n个0x0n，如缺两位，填充两位0x02。如果明文恰好是分组的整数倍，那么也会填充一个完整的块。
 
 ![Pasted image 20241128092601.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128092601.png)
+
 *（块长度为8字节，填充示意）*
 
 ## 2. 攻击过程
@@ -45,12 +65,15 @@ $$
 假设现有一台服务器用于解密校验，解密成功则会返回True，填充校验失败返回Error。传给服务器的数据格式是`IV+C`（初始向量拼接上密文）。现我们仅知道密文和初始向量，那么如何才能在没有密钥的情况下破解出明文？
 *（为了区分中间值和初始向量的符号表示，中间值为MV，初始向量为IV）*
 1. 先假设初始向量为`0x0000000000000000`，将其与密文拼接后发送给系统，系统的解密结果如下：
+	
 	![Pasted image 20241127225537.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127225537.png)
 	
 	*（需要注意的是，中间值和明文是不可见的）*
+	
 	中间值与0异或的结果是中间值本身。对于这个结果系统返回的肯定是Error，因为块长度为8字节，那么填充字节只会是0x01到0x08之间的值。系统会先进行上面的运算，这个解密的操作不会报错，因为只是数学计算而已。但是在校验填充位的时候，明文最后一字节P\[7]的值`0x8D`不符合填充规范，所以系统会返回Error。
 	
 2. 传入初始向量，值为`0x000000000000008C`，系统解密过程如下：
+
     ![Pasted image 20241127225606.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127225606.png)
 
     同样系统解密过程不会报错，校验的时候P\[7]的值为`0x01`，符合填充规范，至于解密出的明文在业务层面是否正确，加解密算法并不关心。现在得到IV\[7]=0x8C，P\[7]=0x01
@@ -141,16 +164,25 @@ System.out.printf("%-5s：%s%n", "IV解密", aesDecrypt("F6AE3048B3190AA1017F8F2
 ```
 ![Pasted image 20241128112934.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128112934.png)
 1. 尝试将传入的初始向量改为全0
+	
 	![Pasted image 20241128135252.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128135252.png)
+	
 	可以看到抛出了`BadPaddingException`异常，表示填充失败。尝试爆破最后一字节看是否能得到一个不抛出异常的值
+	
 	![Pasted image 20241128135635.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128135635.png)
+	
 	从遍历结果来看，找到了这样一个初始向量`0x000000000000000000000000000000F3`使得结果最后一个填充位值为`0x01`
+	
 2. 编写最终的解密代码：[PaddingOracleAttackDemo](https://github.com/AlertMouse/PaddingOracleAttackDemo/blob/master/Java/src/master/java/com/poa/PaddingOracleAttack.java)
-  ![Pasted image 20241128152311.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128152311.png)
-  破解出的明文
+
+    ![Pasted image 20241128152311.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128152311.png)
+
+    破解出的明文
+
 ### 4.2 Python实现
 
 [PaddingOracleAttackDemo](https://github.com/AlertMouse/PaddingOracleAttackDemo/tree/master/Python)
+
 ![Pasted image 20241203095343.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203095343.png)
 
 
@@ -180,8 +212,11 @@ $C'[1]=P'[2]⊕P[2]⊕C[1]$
 $C'[0]=P'[1]⊕P[1]⊕C[0]$
 
 然后得到密文：C'\[0]||C'\[1]||C'\[2]||C\[3]。然而这段密文解密后只有最后一块C\[3]解密后为期望的P'\[3]，其他都是一段无意义的数据。
+
 ![Pasted image 20241203112736.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203112736.png)
+
 *（按照上述推论实现的加密方法，解密的数据只有最后16字节是期望的值）*
+
 因为：$P'[n]=C'[n-1]⊕P[n]⊕C[n-1]=C'[n-1]⊕D_k(C[n])⊕C[n-1]⊕C[n-1]=C'[n-1]⊕D_k(C[n])$
 
 即：$P'[n]=C'[n-1]⊕D_k(C[n])$
@@ -227,8 +262,11 @@ $C'[0]=P'[1]⊕MV'[1]$
 代码实现思路：
 
 1. 先获取原密文块最后两个块，不足两个由最后初始向量充当第一个密文块
+
 2. 通过padding oracle爆破最后一个密文块的中间值，再与要加密的最后一个明文块异或得到倒数第二个密文块
+
 3. 再通过padding oracle爆破倒数第二个密文块的其中间值，再与上一个要加密的明文块异或得到倒数第三个密文块，如此反复直至得到每一块要加密的明文块前面一个密文块
+
 4. 拼接所有的密文块
-[PaddingOracleAttackDemo/Python/ForgePlaintext.py](https://github.com/AlertMouse/PaddingOracleAttackDemo/blob/master/Python/ForgePlaintext.py)
+
 ![Pasted image 20241203134654.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203134654.png)
