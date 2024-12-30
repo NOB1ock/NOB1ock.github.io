@@ -1,10 +1,8 @@
-# Padding Oracle Attack
-
 ---
 title: {{title}}
 date: 2024-12-04 15:49:00 +0800
 categories: [密码学漏洞] 
-tags: 密码学漏洞
+tags: Cryptography
 ---
 
 
