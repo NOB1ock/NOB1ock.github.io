@@ -19,10 +19,10 @@ C_0=IV
 \end{array}
 $$
 
-
 ![Pasted image 20241127154545.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127154545.png)
 *（解密过程）*
 但是明文长度不一定是块长的整数倍，所以需要将最后一块填充补齐。而CBC规定，缺n位填充n个0x0n，如缺两位，填充两位0x02。如果明文恰好是分组的整数倍，那么也会填充一个完整的块。
+
 ![Pasted image 20241128092601.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128092601.png)
 *（块长度为8字节，填充示意）*
 
