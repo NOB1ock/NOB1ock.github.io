@@ -65,20 +65,29 @@ $$
 
 4. 在得到中间值的第8个字节的值之后，就可以爆破其第7个字节
     现在需要系统校验最后两个字节，所以填充的值为`0x02`。为了保证初始向量与中间值异或的第8个字节的值为`0x02`，计算初始向量第8个字节的值 $0x02⊕0x8D=0x8F$ 得到第二轮计算的开始的初始向量为`0x000000000000008F`，通过爆破得到IV\[6]的值为`0x70`，解密示意如下：
+
     ![Pasted image 20241127230507.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127230507.png)
+
     $∴MV_6=P_6⊕IV_6=02⊕70=72$
+
     现在得到中间值为`0x************728D`
 
 5. 每一个字节有256个值，每个字节至多爆破256次，一个8字节长的块需要爆破$2^{8×8}=2048$次。现在计算出所有的中间值，如下：
+
     ![Pasted image 20241128092243.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128092243.png)
+
     至此得到了完整的中间值`0x744BB0415063728D`，加上原本就掌握的初始向量`0x1122334455667788`
+
     $P=MV⊕IV$
+
     $P==0x744BB0415063728D⊕0x1122334455667788=0x6569830505050505$
+
     去除5字节的填充位，实际有效数据`0x656983`，即明文AES，最终在不知晓密钥的情况下获得了明文。
 
 6. 这只是一个块的情况下，一般情况下肯定有多个块，但是逐字节爆破的方式是一样的，只是上面过程的初始向量换成了前一个密文块
 
 ## 3. 原理
+
 由于块加密（分组加密）要求明文数据必须为块长的整数倍，所以需要对最后一个块进行填充以满足块长要求。解密后会检查填充位是否符合要求，如果填充不正确，则系统会返回不同的错误信息，类似于爆破账密的时候，服务器会返回“用户名不存在”、“密码错误”或“登录成功”，根据系统反馈的信息之间的差异，逐字节爆破出正确的值。所以利用这种攻击有两个前提条件：
 - 拥有初始向量和密文
 - 系统校验填充正确或错误的返回信息之间存在差异
@@ -137,9 +146,10 @@ System.out.printf("%-5s：%s%n", "IV解密", aesDecrypt("F6AE3048B3190AA1017F8F2
 	![Pasted image 20241128135635.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128135635.png)
 	从遍历结果来看，找到了这样一个初始向量`0x000000000000000000000000000000F3`使得结果最后一个填充位值为`0x01`
 2. 编写最终的解密代码：[PaddingOracleAttackDemo](https://github.com/AlertMouse/PaddingOracleAttackDemo/blob/master/Java/src/master/java/com/poa/PaddingOracleAttack.java)
-	![Pasted image 20241128152311.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128152311.png)
-	破解出的明文
+  ![Pasted image 20241128152311.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128152311.png)
+  破解出的明文
 ### 4.2 Python实现
+
 [PaddingOracleAttackDemo](https://github.com/AlertMouse/PaddingOracleAttackDemo/tree/master/Python)
 ![Pasted image 20241203095343.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203095343.png)
 
@@ -212,7 +222,7 @@ $C'[n-2]=P'[n-1]⊕MV’[n-1]$
 
 $C'[0]=P'[1]⊕MV'[1]$
 
-新密文为：C'\[1]\||C'\[2]\||...\||C\[n]，初始向量为C'\[0]。
+新密文为：C'\[1]\|\|C'\[2]\|\|...\|\|C\[n]，初始向量为C'\[0]。
 
 代码实现思路：
 
