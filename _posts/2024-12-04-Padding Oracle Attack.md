@@ -1,14 +1,10 @@
 # Padding Oracle Attack
 
 ---
-title: 标题
-
+title: {{title}}
 date: 2024-12-04 15:49:00 +0800
-
-categories: [一级目录名, 二级目录名] 
-
+categories: [密码学漏洞] 
 tags: 密码学漏洞
-
 ---
 
 
