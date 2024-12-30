@@ -16,7 +16,7 @@ timezone:
 
 title: nob1ock # the main title
 
-tagline: 记录学习笔记以及一些有意思的问题 # it will display as the subtitle
+tagline: 记录学习笔记和问题 # it will display as the subtitle
 
 
 description: >- # used by seo meta and the atom feed
@@ -100,7 +100,7 @@ cdn:
 
 # the avatar on sidebar, support local or CORS resources
 avatar:
-  # image: /assets/img/avatar/avatar.jpg
+  image: /assets/img/avatar/avatar.jpg
 
 # The URL of the site-wide social preview image used in SEO `og:image` meta tag.
 # It can be overridden by a customized `page.image` in front matter.
