@@ -2,6 +2,8 @@
 Padding Oracle Attack是一种基于填充验证的攻击，针对使用对称加密模式（如 AES-CBC）和特定填充方式（如 PKCS#5/PKCS#7）的系统。如果系统对解密后的填充验证有反馈（比如提示填充错误或成功），攻击者可以利用这一反馈逐字节地恢复密文的明文内容。
 ## 1. CBC加密模式
 在本文中，我们以CBC（Cipher-block chaining）加密模式为例。在CBC加密模式中，先将明文分成等长的若干块，然后每个明文块先与前一个密文块（经过加密的明文块）进行异或后，再加密。这种方法中，每个密文块都依赖于前面所有的明文块，而第一明文块依赖一个初始向量，该向量长度和块长度一样。由于初始向量每次是随机产生的，所以每次加密的值都会不一样。
+
+
 $$
 \begin{array}{l}
 C_i=E_k(P_i⊕C_{i-1}) \\
@@ -12,6 +14,8 @@ $$
 ![Pasted image 20241127153929.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127153929.png)
 *（加密过程）*
 解密则是反过来，先取出初始向量（初始向量通常放在密文头部一同发送，在密码学层面初始向量无需保密），同样将密文分成与加密时一样长度的块。将密文块进行解密，再与下一个密文块进行异或，得到明文块，最后拼接成明文。而第一个密文块解密后与初始向量异或。
+
+
 $$
 \begin{array}{l}
 P_i=D_k(C_i)⊕C_{i-1} \\
@@ -28,8 +32,10 @@ $$
 
 ## 2. 攻击过程
 一段密文发送给服务器的时候，会先解密，然后再校验明文的填充位是否正确，如果错误则抛出异常，如果正确则返回解密结果。
+
 ![Pasted image 20241127172641.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127172641.png)
 上图是一个密文块解密的过程，有如下数据：
+
 - 分块长度为8字节
 - 密文（Cipher）：`0x7A812356D27E1FAD`
 - 中间值（Intermediary Value）：`0x744BB0415063728D`
@@ -67,6 +73,7 @@ $$
 - 系统校验填充正确或错误的返回信息之间存在差异
 
 ## 4. 代码演示
+
 ### 4.1 Java实现
 先用Java实现AES/128/CBC/PKCS5的加解密，代码如下：
 ```java
@@ -124,7 +131,11 @@ System.out.printf("%-5s：%s%n", "IV解密", aesDecrypt("F6AE3048B3190AA1017F8F2
 ### 4.2 Python实现
 [PaddingOracleAttackDemo](https://github.com/AlertMouse/PaddingOracleAttackDemo/tree/master/Python)
 ![Pasted image 20241203095343.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203095343.png)
+
+
+
 ## 5. 加密任意数据
+
 上面只是利用paddnng oracle解密数据，但在测试的时候需要将payload加密，才能与系统正常交互。那paddnng orcale能用于加密任意数据吗？试着推导一下：
 
 ∵$P[n]=D_k(C[n])⊕C[n-1]$ *（解密公式，D为解密算法，n为块序号）*
@@ -190,7 +201,7 @@ $C'[n-2]=P'[n-1]⊕MV’[n-1]$
 
 $C'[0]=P'[1]⊕MV'[1]$
 
-新密文为：C'\[1]||C'\[2]||...||C\[n]，初始向量为C'\[0]。
+新密文为：C'\[1]\||C'\[2]\||...\||C\[n]，初始向量为C'\[0]。
 
 代码实现思路：
 
