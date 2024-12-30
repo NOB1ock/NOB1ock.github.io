@@ -10,7 +10,5 @@ order: 4
 
 
 
-> python is the best programming language.  
->
-> ​										--- 2024.12.30
+> *python is the best programming language!    --- 2024.12.30*
 
