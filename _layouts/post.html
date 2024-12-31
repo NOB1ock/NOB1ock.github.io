@@ -169,8 +169,7 @@ script_includes:
 
           {{ site.data.locales[lang].copyright.license.template | replace: ':LICENSE_NAME', _replacement }}
         {% endif %}
-      </div>
-
+      
       {% include post-sharing.html lang=lang %}
 
         <div id="gitalk-container"></div>
@@ -191,6 +190,7 @@ script_includes:
           });
           gitalk.render('gitalk-container');
         </script>
+        </div>
 
     </div>
     <!-- .post-tail-bottom -->
