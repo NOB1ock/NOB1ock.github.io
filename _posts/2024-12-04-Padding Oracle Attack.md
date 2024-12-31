@@ -23,7 +23,6 @@ C_0=IV
 $$
 
 ![Pasted image 20241127153929.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127153929.png)
-
 *（加密过程）*
 
 解密则是反过来，先取出初始向量（初始向量通常放在密文头部一同发送，在密码学层面初始向量无需保密），同样将密文分成与加密时一样长度的块。将密文块进行解密，再与下一个密文块进行异或，得到明文块，最后拼接成明文。而第一个密文块解密后与初始向量异或。
@@ -36,13 +35,11 @@ C_0=IV
 $$
 
 ![Pasted image 20241127154545.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127154545.png)
-
 *（解密过程）*
 
 但是明文长度不一定是块长的整数倍，所以需要将最后一块填充补齐。而CBC规定，缺n位填充n个0x0n，如缺两位，填充两位0x02。如果明文恰好是分组的整数倍，那么也会填充一个完整的块。
 
 ![Pasted image 20241128092601.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128092601.png)
-
 *（块长度为8字节，填充示意）*
 
 ## 2. 攻击过程
@@ -62,8 +59,7 @@ $$
 1. 先假设初始向量为`0x0000000000000000`，将其与密文拼接后发送给系统，系统的解密结果如下：
 	
 	![Pasted image 20241127225537.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127225537.png)
-	
-	*（需要注意的是，中间值和明文是不可见的）*
+	*（需要强调的是，对于破解密文时，中间值和明文是不可见的）*
 	
 	中间值与0异或的结果是中间值本身。对于这个结果系统返回的肯定是Error，因为块长度为8字节，那么填充字节只会是0x01到0x08之间的值。系统会先进行上面的运算，这个解密的操作不会报错，因为只是数学计算而已。但是在校验填充位的时候，明文最后一字节P\[7]的值`0x8D`不符合填充规范，所以系统会返回Error。
 	
