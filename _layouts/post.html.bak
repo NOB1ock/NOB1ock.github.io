@@ -170,13 +170,13 @@ script_includes:
           {{ site.data.locales[lang].copyright.license.template | replace: ':LICENSE_NAME', _replacement }}
         {% endif %}
       
-
       {% include post-sharing.html lang=lang %}
+
         <div id="gitalk-container"></div>
-	<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
-	<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
-	<script src="/js/md5.min.js"></script>
-	<script>
+        <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+        <script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+        <script src="/js/md5.min.js"></script>
+        <script>
           var gitalk = new Gitalk({
             clientID: 'Ov23liYtcUFHY4DVhqnG',
             clientSecret: '6d200cc02a2505341699c43975c61c37684aa308',
@@ -184,16 +184,17 @@ script_includes:
             owner: 'nob1ock',
             admin: ['nob1ock'],
             id: md5(location.href.match('/(?<=posts/)(.*)(?=/)/')[1]),  // 文章或页面的唯一标识符
+            distractionFreeMode: true, // 启用无干扰模式
             language: 'en',
             perPage: 10
           });
           gitalk.render('gitalk-container');
         </script>
-	</div>
+        </div>
+
     </div>
     <!-- .post-tail-bottom -->
   </div>
   <!-- div.post-tail-wrapper -->
 
 </article>
-
