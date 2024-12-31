@@ -22,7 +22,7 @@ C_0=IV
 \end{array}
 $$
 
-![Pasted image 20241127153929.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127153929.png)
+![Pasted image 20241127153929.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241127153929.png)
 *（加密过程）*
 
 解密则是反过来，先取出初始向量（初始向量通常放在密文头部一同发送，在密码学层面初始向量无需保密），同样将密文分成与加密时一样长度的块。将密文块进行解密，再与下一个密文块进行异或，得到明文块，最后拼接成明文。而第一个密文块解密后与初始向量异或。
@@ -34,18 +34,18 @@ C_0=IV
 \end{array}
 $$
 
-![Pasted image 20241127154545.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127154545.png)
+![Pasted image 20241127154545.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241127154545.png)
 *（解密过程）*
 
 但是明文长度不一定是块长的整数倍，所以需要将最后一块填充补齐。而CBC规定，缺n位填充n个0x0n，如缺两位，填充两位0x02。如果明文恰好是分组的整数倍，那么也会填充一个完整的块。
 
-![Pasted image 20241128092601.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128092601.png)
+![Pasted image 20241128092601.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241128092601.png)
 *（块长度为8字节，填充示意）*
 
 ## 2. 攻击过程
 一段密文发送给服务器的时候，会先解密，然后再校验明文的填充位是否正确，如果错误则抛出异常，如果正确则返回解密结果。
 
-![Pasted image 20241127172641.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127172641.png)
+![Pasted image 20241127172641.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241127172641.png)
 
 上图是一个密文块解密的过程，有如下数据：
 
@@ -58,14 +58,14 @@ $$
 *（为了区分中间值和初始向量的符号表示，中间值为MV，初始向量为IV）*
 1. 先假设初始向量为`0x0000000000000000`，将其与密文拼接后发送给系统，系统的解密结果如下：
 	
-	![Pasted image 20241127225537.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127225537.png)
+	![Pasted image 20241127225537.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241127225537.png)
 	*（需要强调的是，对于破解密文时，中间值和明文是不可见的）*
 	
 	中间值与0异或的结果是中间值本身。对于这个结果系统返回的肯定是Error，因为块长度为8字节，那么填充字节只会是0x01到0x08之间的值。系统会先进行上面的运算，这个解密的操作不会报错，因为只是数学计算而已。但是在校验填充位的时候，明文最后一字节P\[7]的值`0x8D`不符合填充规范，所以系统会返回Error。
 	
 2. 传入初始向量，值为`0x000000000000008C`，系统解密过程如下：
 
-    ![Pasted image 20241127225606.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127225606.png)
+    ![Pasted image 20241127225606.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241127225606.png)
 
     同样系统解密过程不会报错，校验的时候P\[7]的值为`0x01`，符合填充规范，至于解密出的明文在业务层面是否正确，加解密算法并不关心。现在得到IV\[7]=0x8C，P\[7]=0x01
 
@@ -80,7 +80,7 @@ $$
 4. 在得到中间值的第8个字节的值之后，就可以爆破其第7个字节
     现在需要系统校验最后两个字节，所以填充的值为`0x02`。为了保证初始向量与中间值异或的第8个字节的值为`0x02`，计算初始向量第8个字节的值 $0x02⊕0x8D=0x8F$ 得到第二轮计算的开始的初始向量为`0x000000000000008F`，通过爆破得到IV\[6]的值为`0x70`，解密示意如下：
 
-    ![Pasted image 20241127230507.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241127230507.png)
+    ![Pasted image 20241127230507.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241127230507.png)
 
     $∴MV_6=P_6⊕IV_6=02⊕70=72$
 
@@ -88,7 +88,7 @@ $$
 
 5. 每一个字节有256个值，每个字节至多爆破256次，一个8字节长的块需要爆破$2^{8×8}=2048$次。现在计算出所有的中间值，如下：
 
-    ![Pasted image 20241128092243.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241128092243.png)
+    ![Pasted image 20241128092243.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241128092243.png)
 
     至此得到了完整的中间值`0x744BB0415063728D`，加上原本就掌握的初始向量`0x1122334455667788`
 
@@ -146,7 +146,7 @@ print('加密: ' + str(aes_encrypt('AES')))
 print('解密: ' + aes_decrypt(b'\xf6\xae0H\xb3\x19\n\xa1\x01\x7f\x8f \xa2R\x99\xde').decode('utf-8'))
 ```
 
-![image-20241230155448596](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/image-20241230155448596.png)
+![image-20241230155448596](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/image-20241230155448596.png)
 
 1.  尝试将传入的初始向量改为全0
 
@@ -155,7 +155,7 @@ print('解密: ' + aes_decrypt(b'\xf6\xae0H\xb3\x19\n\xa1\x01\x7f\x8f \xa2R\x99\
     print('解密: ' + aes_decrypt(b'\xf6\xae0H\xb3\x19\n\xa1\x01\x7f\x8f \xa2R\x99\xde', iv=iv).decode('utf-8'))
     ```
 
-    ![image-20241230155722279](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/image-20241230155722279.png)
+    ![image-20241230155722279](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/image-20241230155722279.png)
 
     可以看到抛出了`BadPaddingException`异常，表示填充失败
 
@@ -173,7 +173,7 @@ print('解密: ' + aes_decrypt(b'\xf6\xae0H\xb3\x19\n\xa1\x01\x7f\x8f \xa2R\x99\
             pass
     ```
 
-    ![image-20241230162619590](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/image-20241230162619590.png)
+    ![image-20241230162619590](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/image-20241230162619590.png)
 
     爆破出的填充正确的值为243即`0xF3`，该值是的解密后的数据最后一个填充位值为`0x01`
 
@@ -241,7 +241,7 @@ print('解密: ' + aes_decrypt(b'\xf6\xae0H\xb3\x19\n\xa1\x01\x7f\x8f \xa2R\x99\
     print('解密:  '+ bytes(plain_block[:end]).decode('utf-8'))
     ```
 
-    ![image-20241230170029752](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/image-20241230170029752.png)
+    ![image-20241230170029752](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/image-20241230170029752.png)
 
     成功解密密文
 
@@ -357,7 +357,7 @@ print('解密: ' + aes_decrypt(b'\xf6\xae0H\xb3\x19\n\xa1\x01\x7f\x8f \xa2R\x99\
     print('明文: ' + crack_plaintext(cipher, iv).decode('utf-8'))
     ```
 
-    ![image-20241230170837474](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/image-20241230170837474.png)
+    ![image-20241230170837474](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/image-20241230170837474.png)
 
     破解出的明文
 
@@ -387,7 +387,7 @@ $C'[0]=P'[1]⊕P[1]⊕C[0]$
 
 然后得到密文：C'\[0]\|\|C'\[1]\|\|C'\[2]\|\|C\[3]。然而这段密文解密后只有最后一块C\[3]解密后为期望的P'\[3]，其他都是一段无意义的数据。
 
-![Pasted image 20241203112736.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203112736.png)
+![Pasted image 20241203112736.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203112736.png)
 
 但是按照上述推论实现的加密方法，解密后的数据只有最后16字节是期望的值
 
@@ -518,7 +518,7 @@ def encrypt_ciphertext(ori_ciphertext, forge_plaintext, ori_iv, decrypt_func=Non
 
 测试验证一下，利用POA这种方式加密后的数据被成功解密
 
-![image-20241231103242831](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/image-20241231103242831.png)
+![image-20241231103242831](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/image-20241231103242831.png)
 
 
 
@@ -536,7 +536,7 @@ git checkout tags/shiro-root-1.4.1
 
 该版本的Shiro演示环境就有Spring Boot，开箱即用。加载一下shiro-1.4.1\samples\spring-boot-web\pom.xml，然后启动项在`src/master/java/org/apache/shiro/samples/WebApp.java`，直接启动即可
 
-![Pasted image 20241126114056.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241126114056.png)
+![Pasted image 20241126114056.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241126114056.png)
 
 ### 6.2 响应差异分析
 
@@ -546,11 +546,11 @@ debug简单分析一下
 
 查看`org.apache.shiro.mgt.AbstractRememberMeManager`的构造方法，与1.24对比可以发现，后续的版本的密钥不再是被硬编码到代码中，而是服务器随机生成一个，所以通过爆破密钥的方式不太可行了
 
-![Pasted image 20241126144417.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241126144417.png)
+![Pasted image 20241126144417.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241126144417.png)
 
 在`org/apache/shiro/mgt/AbstractRememberMeManager`的第467行代码的`encrypt()`方法体中打上断点，发送一个登录请求，查看其加密算法
 
-![Pasted image 20241203162716.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203162716.png)
+![Pasted image 20241203162716.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203162716.png)
 
 可以看到，采用的还是AES/CBC/PKCS#5加密算法，其密钥长度和初始向量长度均为16字节。而该加密算法存在被Padding Oracle Attack攻击的潜在风险。从前文可知该攻击方式有两个利用条件：
 
@@ -562,11 +562,11 @@ Shiro 721的重点在于采用了这个具有漏洞的加密算法，通过paddi
 前文提到要利用padding oracle，需要服务器对于填充正确或失败的响应存在差异，所以现在分析一下其是否存在差异
 1. 正常发送带有cookie的请求报文
 	
-	![Pasted image 20241203164015.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203164015.png)
+	![Pasted image 20241203164015.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203164015.png)
 	
 2. 删除Cookie尾部一个字符
 
-    ![Pasted image 20241203164054.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203164054.png)
+    ![Pasted image 20241203164054.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203164054.png)
 
     通过观察可知，填充错误与正确相比，响应报文头部多了一个`Set-Cookie: rememberMe=deleteMe`字段。
 
@@ -574,11 +574,11 @@ Shiro 721的重点在于采用了这个具有漏洞的加密算法，通过paddi
 
     在`org/apache/shiro/crypto/JcaCipherService.java`的第390行代码打上断点
 
-    ![Pasted image 20241203164608.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203164608.png)
+    ![Pasted image 20241203164608.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203164608.png)
 
     先发送一个正常cookie的请求，应用在断点停住，在Evaluate Expression执行`crypt(ciphertext, key, iv, javax.crypto.Cipher.DECRYPT_MODE);`，正常解密
 
-    ![Pasted image 20241203164823.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203164823.png)
+    ![Pasted image 20241203164823.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203164823.png)
 
     测试一下填充错误时抛出什么异常
 
@@ -591,25 +591,25 @@ Shiro 721的重点在于采用了这个具有漏洞的加密算法，通过paddi
 
     可以看到抛出了`BadPaddingException`的异常
 
-    ![Pasted image 20241203164956.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203164956.png)
+    ![Pasted image 20241203164956.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203164956.png)
 
     修改`ciphertext`的最后一个字节为0，让其抛出填充错误的异常
 
-    ![Pasted image 20241203165259.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203165259.png)
+    ![Pasted image 20241203165259.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203165259.png)
 
-    ![Pasted image 20241203165518.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203165518.png)
+    ![Pasted image 20241203165518.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203165518.png)
 
     在抛出异常后，继续跟进，在`org/apache/shiro/mgt/AbstractRememberMeManager`的第389行捕获异常，并根据异常设置subject上下文
 
-    ![Pasted image 20241203170159.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203170159.png)
+    ![Pasted image 20241203170159.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203170159.png)
 
     跟进一下，最后会走到`org/apache/shiro/web/servlet/SimpleCookie.removeFrom()`方法，在这里设置添加响应头`rememberMe=deleteMe`
 
-    ![Pasted image 20241203170732.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203170732.png)
+    ![Pasted image 20241203170732.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203170732.png)
 
     查看返回前端的响应，响应头确实多出了一个set-cookie字段
 
-    ![Pasted image 20241203171056.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203171056.png)
+    ![Pasted image 20241203171056.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203171056.png)
 
 由此可以看出之前的判断是正确的，在能获取合法cookie的情况下满足padding oracle这种攻击方式：当填充错误时，响应头会多出`Set-Cookie: rememberMe=deleteMe`字段
 
@@ -700,15 +700,15 @@ import java.io.IOException;
 	>
 	>而该构造函数就使用到了commons.collections库中的ComparableComparator类
 	>
-	>![Pasted image 20241125173114.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241125173114.png)
+	>![Pasted image 20241125173114.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241125173114.png)
 	>
 	>所以需要传入其他的Comparator类，要求实现了`java.util.Comparator`和`java.io.Serializable`，最好还是标准库中的类
 	>
-	>![Pasted image 20241125173307.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241125173307.png)
+	>![Pasted image 20241125173307.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241125173307.png)
 	>
 	>通过翻找最终找到了`ReverseComparator`类，该类是`Collections`类的一个内部类
 	>
-	>![Pasted image 20241126093154.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241126093154.png)
+	>![Pasted image 20241126093154.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241126093154.png)
 	>
 	>通过调用`Collections`的静态方法`reverseOrder()`可以获取到该类实例
 	
@@ -729,13 +729,13 @@ import java.io.IOException;
 	```
 	运行，得到序列化之后的恶意payload
 	
-	![Pasted image 20241203172736.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241203172736.png)
+	![Pasted image 20241203172736.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241203172736.png)
 	
 2. Shiro的Cookie是加了密的，这里需要通过padding oracle加密上面生成的payload。因为利用Shiro721，通过网络爆破加密payload，所花时间较长。为了验证，可以先获取密钥，在本地通过padding oracle加密，再发送给服务器验证。
 	
 	debug，在加密函数处获取密钥
 	
-	![Pasted image 20241204094536.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241204094536.png)
+	![Pasted image 20241204094536.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241204094536.png)
 	
 	密钥是`kPH+bIxk5D2deZiIxcaaaA==`，然后在python实现的[padding oracle加密任意数据](https://github.com/nob1ock/padding_oracle_attack_demo/blob/main/forge_plain.py)的脚本中，将解密函数的密钥替换为该值，模拟服务器解密填充失败的场景，代码如下：
 	
@@ -759,11 +759,11 @@ import java.io.IOException;
 	
 	调用函数，验证一下：
 	
-	![image-20241231113411995](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/image-20241231113411995.png)
+	![image-20241231113411995](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/image-20241231113411995.png)
 	
 	得到了恶意rememberMe的值，发送给服务器，成功弹出计算器
 	
-	![Pasted image 20241204103227.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241204103227.png)
+	![Pasted image 20241204103227.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241204103227.png)
 	
 3. 通过在本地解密，验证了该思路的可行性，现在将攻击脚本的自定义解密函数改为通过HTTP响应头来判断填充正确还是失误
 
@@ -779,19 +779,19 @@ import java.io.IOException;
 
     调试一下，获取Cookie最后32个字节，前16个字节作为初始向量，后16个字节作为密文，发送给服务器，观察响应
 
-    ![Pasted image 20241204111820.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241204111820.png)
+    ![Pasted image 20241204111820.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241204111820.png)
 
     修改密文最后一个字节，结果还是有deleteMe
 
-    ![Pasted image 20241204112105.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241204112105.png)
+    ![Pasted image 20241204112105.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241204112105.png)
 
     这显然不满足padding oracle攻击的要求，进入代码排查原因。发现实际上解密成功了，未报填充错误的异常
 
-    ![Pasted image 20241204112352.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241204112352.png)
+    ![Pasted image 20241204112352.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241204112352.png)
 
     继续跟进发现是在反序列化的时候抛出了异常，从而导致无论填充正确与否都会抛出异常
 
-    ![Pasted image 20241204112505.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted image 20241204112505.png)
+    ![Pasted image 20241204112505.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted image 20241204112505.png)
 
     也就意味着发送给服务器的rememberMe，要保证能反序列化成功。这里就用到Java原生反序列化的一个特性，只要前面的数据反序列化成功，后面的数据不会影响反序列化操作。因此我们可以在已有的rememberMe字段后面拼接上需要解密的数据，只要能解密成功就不会抛出反序列化的异常，也就能通过响应判断填充情况。修改代码中remember_me的值
 
@@ -799,7 +799,7 @@ import java.io.IOException;
     remember_me = cookie + base64.b64encode(iv + ciphertext).decode('utf-8')
     ```
 
-    ![Pasted image 20241204113710.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241204113710.png)
+    ![Pasted image 20241204113710.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241204113710.png)
 
     最终的自定义解密函数
 
@@ -817,11 +817,11 @@ import java.io.IOException;
 
     *（这还是通过本地网络访问的情况下，如果通过外部网络访问，时间还会更长）*
 
-    ![Pasted image 20241205140354.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241205140354.png)
+    ![Pasted image 20241205140354.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241205140354.png)
 
     将恶意rememberMe发送给服务器，成功反弹shell
 
-    ![Pasted image 20241205145553.png](https://raw.githubusercontent.com/nob1ock/nob1ock.github.io/refs/heads/master/_posts/_images/2024-12-30/Pasted%20image%2020241205145553.png)
+    ![Pasted image 20241205145553.png](https://cdn.jsdelivr.net/gh/nob1ock/nob1ock.github.io@master/_posts/_images/2024-12-30/Pasted%20image%2020241205145553.png)
 
 
 
